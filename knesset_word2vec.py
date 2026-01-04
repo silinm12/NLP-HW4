@@ -1,6 +1,7 @@
 import json
 import re
 import gensim
+from transformers import pipeline
 import numpy as np
 from gensim.models import Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
@@ -151,7 +152,6 @@ def solve_red_words(model):
 
     with open('red_words_sentences.txt','w',encoding='utf-8') as f:
         f.write("\n".join(output_lines))
-
 
 
 
