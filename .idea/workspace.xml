@@ -4,16 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c0ac4bc4-78a3-418d-9792-c8bd47f3101d" name="Changes" comment="completed step 2 of NLP homework">
-      <change afterPath="$PROJECT_DIR$/knesset_dictaber.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knesset_word2vec_classification.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/masked_sampled_sents.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knesset_similar_sentences.txt" beforeDir="false" afterPath="$PROJECT_DIR$/knesset_similar_sentences.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knesset_similar_words.txt" beforeDir="false" afterPath="$PROJECT_DIR$/knesset_similar_words.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knesset_word2vec.model" beforeDir="false" afterPath="$PROJECT_DIR$/knesset_word2vec.model" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knesset_word2vec.py" beforeDir="false" afterPath="$PROJECT_DIR$/knesset_word2vec.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/red_words_sentences.txt" beforeDir="false" afterPath="$PROJECT_DIR$/red_words_sentences.txt" afterDir="false" />
+    <list default="true" id="c0ac4bc4-78a3-418d-9792-c8bd47f3101d" name="Changes" comment="step 3 and 4">
+      <change afterPath="$PROJECT_DIR$/original_sampled_sents.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -242,7 +234,15 @@
       <option name="project" value="LOCAL" />
       <updated>1767562929878</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="step 3 and 4">
+      <option name="closed" value="true" />
+      <created>1767568968525</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1767568968525</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -271,7 +271,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="step 1 and 2" />
     <MESSAGE value="completed step 2 of NLP homework" />
-    <option name="LAST_COMMIT_MESSAGE" value="completed step 2 of NLP homework" />
+    <MESSAGE value="step 3 and 4" />
+    <option name="LAST_COMMIT_MESSAGE" value="step 3 and 4" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
