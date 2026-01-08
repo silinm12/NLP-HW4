@@ -2,11 +2,13 @@ import json
 import re
 import numpy as np
 import random
+import knesset_word2vec
 from collections import Counter, defaultdict
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.utils import shuffle
+from gensim.models import Word2Vec
 
 #step 3
 
@@ -112,7 +114,7 @@ def vectorize_list_to_w2v(sentences_list, model):
 
 if __name__ == "__main__":
     corpus_path = "knesset_corpus.jsonl"
-    model= "knesset_word2vec.model"
+    model = Word2Vec.load("knesset_word2vec.model")
     #Load data for the binary task (Top 2 speakers)
     speaker_counts = count_speakers(corpus_path)
     (first_spk, _), (second_spk, _) = get_top_two_speakers(speaker_counts)

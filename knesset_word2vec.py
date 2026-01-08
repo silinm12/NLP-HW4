@@ -6,8 +6,6 @@ import numpy as np
 from gensim.models import Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
 from gensim.topic_coherence.indirect_confirmation_measure import word2vec_similarity
-
-
 #Step 1:
 #a
 def load_and_preprocess_corpus(file_path):
