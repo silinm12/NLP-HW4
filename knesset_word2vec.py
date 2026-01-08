@@ -1,11 +1,23 @@
 import json
 import re
 import gensim
-from transformers import pipeline
 import numpy as np
+import os
+import sys
 from gensim.models import Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
-from gensim.topic_coherence.indirect_confirmation_measure import word2vec_similarity
+
+def normalize_speaker(speaker):
+    """Maps speaker variants to a canonical name."""
+    SPEAKER_ALIASES = {
+        "ראובן ריבלין": "ראובן ריבלין",
+        "ר' ריבלין": "ראובן ריבלין",
+        "רובי ריבלין": "ראובן ריבלין",
+        "א' בורג": "א' בורג",
+        "אברהם בורג": "א' בורג",
+    }
+    return SPEAKER_ALIASES.get(speaker, speaker)
+
 #Step 1:
 #a
 def load_and_preprocess_corpus(file_path):
@@ -16,15 +28,13 @@ def load_and_preprocess_corpus(file_path):
                 data=json.loads(line)
                 text = data.get('sentence_text','')
                 #clean text from anything that isn't a word, and exchange with ''
-                clean_text = re.sub(r'[^\w\s]|[\d]','',text)
-                #tokenize
-                tokens= clean_text.split()
+                raw_tokens = text.split()
+                tokens = [t for t in raw_tokens if any(c.isalnum() for c in t)]
                 if tokens:
                     tokenized_sentences.append(tokens)
 
             except Exception as e:
                 continue
-    print(f"Done! Created {len(tokenized_sentences)} tokenized sentences.")
     return tokenized_sentences
 
 #step 2:
@@ -62,42 +72,46 @@ def get_sentence_embedding(sentence,model):
     return sentence_embedding
 
 #c:
-def find_similar_sentences(sentence,model):
+def find_similar_sentences(corpus_path, model, output_dir):
+    #Target the two main speakers for a balanced analysis
+    target_speakers = ["ראובן ריבלין", "א' בורג"]
+    targets = {sp: [] for sp in target_speakers}
     valid_corpus = []
-    for sent in sentence:
-        if len([w for w in sent if w in model.wv])>=4:
-            valid_corpus.append(sent)
-    print(f"Calculating vectors for {len(valid_corpus)} sentences...")
-    #choose the first 10 valid sentences
-    corpus_vectors = [get_sentence_embedding(s, model) for s in valid_corpus]
-    corpus_matrix = np.array(corpus_vectors)
 
-    # We want matches for the first 10 sentences
-    target_indices = range(10)
+    with open(corpus_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            data = json.loads(line)
+            # This call will now work because normalize_speaker is defined
+            speaker = normalize_speaker(data.get('speaker_name', ''))
+            text = data.get('sentence_text', '')
+            tokens = [t for t in text.split() if any(c.isalnum() for c in t)]
 
-    with open('knesset_similar_sentences.txt', 'w', encoding='utf-8') as f:
-        for i in target_indices:
-            # Reshape target to shape (1, vector_size)
-            target_vec = corpus_matrix[i].reshape(1, -1)
+            # Only use sentences with at least 4 words known to the model
+            if len([w for w in tokens if w in model.wv]) >= 4:
+                valid_corpus.append(tokens)
+                if speaker in targets and len(targets[speaker]) < 5:
+                    targets[speaker].append(tokens)
 
-            # Calculate similarity against the ENTIRE corpus at once
-            similarities = cosine_similarity(target_vec, corpus_matrix)
+    target_list = targets[target_speakers[0]] + targets[target_speakers[1]]
+    target_vectors = np.array([get_sentence_embedding(s, model) for s in target_list])
+    corpus_vectors = np.array([get_sentence_embedding(s, model) for s in valid_corpus])
 
-            # Set self-similarity to -1 so it doesn't match itself
-            similarities[0][i] = -1
+    output_path = os.path.join(output_dir, 'knesset_similar_sentences.txt')
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for i, target_vec in enumerate(target_vectors):
+            similarities = cosine_similarity(target_vec.reshape(1, -1), corpus_vectors)
 
-            # Find the index of the highest score
+            target_str = " ".join(target_list[i])
+            for idx, corpus_sent in enumerate(valid_corpus):
+                if " ".join(corpus_sent) == target_str:
+                    similarities[0][idx] = -1
+                    break
+
             best_idx = np.argmax(similarities)
+            match_str = " ".join(valid_corpus[best_idx])
 
-            target_sent = valid_corpus[i]
-            best_match = valid_corpus[best_idx]
-
-            target_str = " ".join(target_sent)
-            match_str = " ".join(best_match)
+            # Formatted exactly per image instructions: <orig>: most similar sentence: <match>
             f.write(f"{target_str}: most similar sentence: {match_str}\n")
-            print(f"Finished sentence {i + 1}/10")
-
-
 #d
 def solve_red_words(model):
     sentences_data = [
@@ -141,7 +155,7 @@ def solve_red_words(model):
             new_sent= new_sent.replace(red_word, replacement)
 
             replacements_log.append(f"({red_word}:{replacement})")
-        replacements_str=",".join(replacements_log)
+        replacements_str=" , ".join(replacements_log)
 
         line1= f"{i+1}: {original_sent}: {new_sent}"
         line2= f"replaced words: {replacements_str}"
@@ -154,17 +168,21 @@ def solve_red_words(model):
 
 
 if __name__ == "__main__":
-    corpus_path="knesset_corpus.jsonl"
+    # Command line argument handling
+    if len(sys.argv) != 3:
+        print("Usage: python knesset_word2vec.py <path/to/corpus_file.jsonl> <path/to/output_dir>")
+        sys.exit(1)
+
+    corpus_path = sys.argv[1]#knesset_corpus.jsonl
+    output_dir = sys.argv[2]
+    os.makedirs(output_dir, exist_ok=True)
     #step 1,a: load data
     sentences = load_and_preprocess_corpus(corpus_path)
     #b: train model
     model =Word2Vec(sentences,vector_size=100,window=5,min_count=3)
     model.save('knesset_word2vec.model')
-    #c
-    word_vectors = model.wv
-    print(word_vectors['ישראל'])
 
     #step 2
     check_similarity(model)
-    find_similar_sentences(sentences,model)
+    find_similar_sentences(corpus_path, model, output_dir)
     solve_red_words(model)
